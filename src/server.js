@@ -14,7 +14,8 @@ const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
-app.set("trust proxy", true);
+app.set('trust proxy', 1);
+
 
 // Connect to database
 connectDB();
