@@ -546,25 +546,33 @@ const getLocations = async (req, res) => {
       raw: true,
     });
 
-    // If coordinates provided, calculate distances for the filtered locations and sort by proximity
+    // If coordinates provided, calculate distances, filter by radius, and sort by proximity
     if (latitude && longitude) {
       const { calculateDistance } = require("../services/locationService");
       const userLat = parseFloat(latitude);
       const userLon = parseFloat(longitude);
 
-      // Calculate distance for each filtered location
-      locations = locations.map((location) => {
-        const distance = calculateDistance(
-          userLat,
-          userLon,
-          parseFloat(location.latitude),
-          parseFloat(location.longitude)
-        );
-        return {
-          ...location,
-          distance,
-        };
-      });
+      // Calculate distance for each filtered location and filter by radius
+      locations = locations
+        .map((location) => {
+          const distance = calculateDistance(
+            userLat,
+            userLon,
+            parseFloat(location.latitude),
+            parseFloat(location.longitude)
+          );
+          const radiusMeters = location.radiusMeters || 500; // Default radius if not set
+          
+          return {
+            ...location,
+            distance,
+            radiusMeters,
+          };
+        })
+        .filter((location) => {
+          // Only include locations where user is within the location's radius
+          return location.distance <= location.radiusMeters;
+        });
 
       // Sort by distance (nearest first)
       locations.sort((a, b) => a.distance - b.distance);
